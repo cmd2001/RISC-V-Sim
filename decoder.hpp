@@ -1,34 +1,165 @@
 #ifndef RISC_V_DECODER_CPP_HPP
 #define RISC_V_DECODER_CPP_HPP
 
+#include "include/shared.hpp"
+
 typedef unsigned int uint;
 
 namespace RISC_V {
 
-enum INSTRUCTION {
-    LUI, AUIPC, JAL, JALR, BEQ, BNE, BLT, BGE, BLTU, BGEU, LB, LH, LW, LBU, LHU, SB, SH, SW, ADDI, SLTI, SLTIU, XORI, ORI, ANDI, SLLI, SRLI, SRAI, ADD, SUB, SLL, SLT, SLTU, XOR, SRL, SRA, OR, AND
-};
-enum INSTRUCTION_TYPE {
-    LIMM, // LU, LUIPC
-    JMP, // JAL, JALR
-    JMPC, // BEQ, BNE, BLT, BGE, BLTU, BGEU
-    LOAD, // LB, LH, LW, LBU, LHU
-    SAVE, // SB, SH, SW
-    OPEI, // ADDI, SLTI, SLTIU, XORI, ORI, ANDI, SLLI, SRLI, SRAI
-    OPE, // ADD, SUB, SLL, SLT, SLTU, XOR, SRL, SRA, OR, AND
-};
-
-class Instruction {
-public:
-    const INSTRUCTION ins;
-    const INSTRUCTION_TYPE tpe;
-    const uint rs1, rs2, imm;
-    Instruction(const INSTRUCTION &_ins, const INSTRUCTION_TYPE &_tpe, const uint &_rs1, const uint &_rs2, const uint &_imm): ins(_ins), tpe(_tpe), rs1(_rs1), rs2(_rs2), imm(_imm) {}
-};
-
 class Decoder {
+private:
+    uint cutBit(const uint &x, const uint &l, const uint &r) {
+        return (x & ((1u << r) - (1u << l))) >> l;
+    }
+    uint getBit(const uint &x, const uint &p) {
+        return (x >> p) &1u;
+    }
+    void writeBit(uint &dst, const uint &p, const uint &x) {
+        dst |= (x << p);
+    }
+    void writeSgn(uint &dst, const uint &startP, const uint &sgn) {
+        if(sgn) {
+            const uint mask = (1u << 32) - (1u << startP);
+            dst |= mask;
+        }
+    }
+    uint imm_I(const uint &x) {
+        uint ret = 0;
+        writeBit(ret, 0, getBit(x, 20));
+        writeBit(ret, 1, cutBit(x, 21, 31));
+        const uint sgn = getBit(x, 31);
+        writeSgn(ret, 11, sgn);
+        return ret;
+    }
+    uint imm_S(const uint &x) {
+        uint ret = 0;
+        writeBit(ret, 0, getBit(x, 7));
+        writeBit(ret, 1, cutBit(x, 8, 12));
+        writeBit(ret, 5, cutBit(x, 25, 31));
+        const uint sgn = getBit(x, 31);
+        writeSgn(ret, 11, sgn);
+        return ret;
+    }
+    uint imm_B(const uint &x) {
+        uint ret = 0;
+        writeBit(ret, 1, cutBit(x, 8, 12));
+        writeBit(ret, 5, cutBit(x, 25, 31));
+        writeBit(ret, 11, getBit(x, 7));
+        const int sgn = getBit(x, 31);
+        writeSgn(ret, 12, sgn);
+        return ret;
+    }
+    uint imm_U(const uint &x) {
+        uint ret = 0;
+        writeBit(ret, 12, cutBit(x, 12, 32));
+        return ret;
+    }
+    uint imm_J(const uint &x) {
+        uint ret = 0;
+        printBin(x);
+        writeBit(ret, 1, cutBit(x, 21, 31));
+        debug << "lo = " << cutBit(x, 21, 31) << endl;
+        writeBit(ret, 11, getBit(x, 20));
+        debug << "mid1 = " << getBit(x, 20) << endl;
+        writeBit(ret, 12, cutBit(x, 12, 20));
+        debug << "mid2 = " << cutBit(x, 12, 20) << endl;
+        const uint sgn = getBit(x, 31);
+        debug << "sgn = " << sgn << endl;
+        writeSgn(ret, 20, sgn);
+        printBin(ret);
+        return ret;
+    }
 public:
-
+    Instruction decode(const uint &ins) {
+        Instruction ret;
+        uint step, step2; // FIX variable redefinition in switch
+        switch(cutBit(ins, 0, 7)) {
+            case 55: // 0110111, LUI
+                ret.ins = LUI, ret.tpe = LIMM;
+                ret.rd = cutBit(ins, 7, 12);
+                printBin(ins);
+                ret.imm = imm_U(ins);
+                printBin(ret.imm);
+                break;
+            case 23: // 0010111, AUIPC
+                ret.ins = AUIPC, ret.tpe = LIMM;
+                ret.rd = cutBit(ins, 7, 12);
+                ret.imm = imm_U(ins);
+                break;
+            case 111: //1101111, JAL
+                ret.ins = JAL, ret.tpe = JMP;
+                ret.rd = cutBit(ins, 7, 12);
+                ret.imm = imm_J(ins);
+                break;
+            case 103: //1100111, JALR
+                ret.ins = JALR, ret.tpe = JMP;
+                ret.rd = cutBit(ins, 7, 12);
+                ret.imm = imm_I(ins);
+                break;
+            case 99: // 1100011
+                ret.tpe = JMPC;
+                ret.rs1 = cutBit(ins, 15, 20);
+                ret.rs2 = cutBit(ins, 20, 25);
+                ret.imm = imm_B(ins);
+                step = cutBit(ins, 12, 15);
+                if(step < 4) ret.ins = INSTRUCTION(int(BEQ) + step); // WHAT A FUCK IS THIS?
+                else ret.ins = INSTRUCTION(int(BLT) + step - 4);
+                break;
+            case 3: //  0000011, for LB...LHU
+                ret.tpe = LOAD;
+                ret.rd = cutBit(ins, 7, 12);
+                ret.rs1 = cutBit(ins, 15, 20);
+                ret.imm = imm_I(ins);
+                step = cutBit(ins, 12, 15);
+                if(step < 4) ret.ins = INSTRUCTION(int(LB) + step);
+                else ret.ins = ret.ins = INSTRUCTION(int(LBU) + step - 4);
+                break;
+            case 35: // 0100011, for SB...SW
+                ret.tpe = STORE;
+                ret.rs1 = cutBit(ins, 15, 20);
+                ret.rs2 = cutBit(ins, 20, 25);
+                ret.imm = imm_S(ins);
+                step = cutBit(ins, 12, 15);
+                ret.ins = INSTRUCTION(int(SB) + step);
+                break;
+            case 19: // 0010011, for ADDI...ANDI...SRAI
+                ret.tpe = OPEI;
+                ret.rd = cutBit(ins, 7, 12);
+                ret.rs1 = cutBit(ins, 15, 20);
+                step = cutBit(ins, 12, 15);
+                if(step == 1 || step == 5) {
+                    ret.imm = cutBit(ins, 20, 25);
+                    step2 = getBit(ins, 30);
+                    if(step == 1) ret.ins = SLLI;
+                    else if(step == 5) ret.ins = INSTRUCTION(int(SRLI) + step2);
+                } else {
+                    ret.imm = imm_I(ins);
+                    if (!step) ret.ins = ADDI;
+                    else if(step < 4) ret.ins = INSTRUCTION(int(SLTI) + step - 2);
+                    else if(step == 4) ret.ins = XORI;
+                    else ret.ins = INSTRUCTION(int(ORI) + step - 6);
+                }
+                break;
+            case 51: // 0110011, ADD...AND
+                ret.tpe = OPE;
+                ret.tpe = OPE;
+                ret.rd = cutBit(ins, 7, 12);
+                ret.rs1 = cutBit(ins, 15, 20);
+                ret.rs2 = cutBit(ins, 20, 25);
+                step = cutBit(ins, 12, 15);
+                step2 = getBit(ins, 30);
+                if(!step) ret.ins = INSTRUCTION(int(ADD) + step2);
+                else if(step <= 4) ret.ins = INSTRUCTION(int(SUB) + step - 1);
+                else if(step == 5) ret.ins = INSTRUCTION(int(SRL) + step2);
+                else ret.ins = INSTRUCTION(int(OR) + step - 6);
+                break;
+            default:
+                debug << "ERROR:: UNKNOWN INSTRUCTION" << endl;
+                assert(0);
+        }
+        return ret;
+    }
 };
 
 }
