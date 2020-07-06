@@ -57,30 +57,24 @@ private:
     }
     uint imm_J(const uint &x) {
         uint ret = 0;
-        printBin(x);
         writeBit(ret, 1, cutBit(x, 21, 31));
-        debug << "lo = " << cutBit(x, 21, 31) << endl;
         writeBit(ret, 11, getBit(x, 20));
-        debug << "mid1 = " << getBit(x, 20) << endl;
         writeBit(ret, 12, cutBit(x, 12, 20));
-        debug << "mid2 = " << cutBit(x, 12, 20) << endl;
         const uint sgn = getBit(x, 31);
-        debug << "sgn = " << sgn << endl;
         writeSgn(ret, 20, sgn);
-        printBin(ret);
         return ret;
     }
 public:
     Instruction decode(const uint &ins) {
         Instruction ret;
         uint step, step2; // FIX variable redefinition in switch
+        printBin(ins);
+        // printBin(cutBit(ins, 0, 7));
         switch(cutBit(ins, 0, 7)) {
             case 55: // 0110111, LUI
                 ret.ins = LUI, ret.tpe = LIMM;
                 ret.rd = cutBit(ins, 7, 12);
-                printBin(ins);
                 ret.imm = imm_U(ins);
-                printBin(ret.imm);
                 break;
             case 23: // 0010111, AUIPC
                 ret.ins = AUIPC, ret.tpe = LIMM;
@@ -91,6 +85,7 @@ public:
                 ret.ins = JAL, ret.tpe = JMP;
                 ret.rd = cutBit(ins, 7, 12);
                 ret.imm = imm_J(ins);
+                printBin(ret.imm);
                 break;
             case 103: //1100111, JALR
                 ret.ins = JALR, ret.tpe = JMP;
@@ -148,9 +143,10 @@ public:
                 ret.rs1 = cutBit(ins, 15, 20);
                 ret.rs2 = cutBit(ins, 20, 25);
                 step = cutBit(ins, 12, 15);
+                debug << "step = " << step << endl;
                 step2 = getBit(ins, 30);
                 if(!step) ret.ins = INSTRUCTION(int(ADD) + step2);
-                else if(step <= 4) ret.ins = INSTRUCTION(int(SUB) + step - 1);
+                else if(step <= 4) ret.ins = INSTRUCTION(int(SLL) + step - 1);
                 else if(step == 5) ret.ins = INSTRUCTION(int(SRL) + step2);
                 else ret.ins = INSTRUCTION(int(OR) + step - 6);
                 break;
