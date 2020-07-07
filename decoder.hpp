@@ -160,7 +160,8 @@ class Decoder {
 private:
     Instruction_Decoder id;
 public:
-    Instruction decode(const uint &_ins, Registers &r) { // decode instruction and solve jump.
+    Instruction decode(const uint &_ins, Registers &r, const Registers &_r) { // decode instruction and solve jump.
+        r = _r;
         Instruction ins = id.decode(_ins);
         if(ins.tpe == JMP || ins.tpe == JMPC) {
             r.pc -= 4; // FIXME: displace effect in IR

@@ -51,9 +51,11 @@ public:
 constexpr size_t memory_Size = 0x20000;
 class Memory {
     unsigned char* dat;
+public:
     Memory() { dat = new unsigned char[memory_Size]; }
     ~Memory() { delete[] dat; }
     unsigned char & operator [] (const uint &p) { return dat[p]; }
+    const unsigned char & operator [] (const uint &p) const { return dat[p]; }
     void init(istream &i) {
         i >> hex;
         for(uint p = 0; !i.eof(); p++) i >> dat[p];

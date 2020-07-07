@@ -6,17 +6,31 @@
 #include "decoder.hpp"
 #include "executor.hpp"
 #include "mem.hpp"
+#include "other.hpp"
 
-using namespace std;
+using namespace RISC_V;
+
+
+Instruction_Fetcher IF;
+Decoder ID;
+Executor EX;
+Memory_Access MEM;
+WriteBacker WB;
+
+Memory mem;
+Registers reg, reg2;
+
 
 int main() {
-    RISC_V::Decoder d;
+    mem.init(cin);
+    uint _ins;
+    Instruction ins;
     while(1) {
-        unsigned ins = 0, in[4];
-        for(int i = 0; i < 4; i++) scanf("%X", in + i);
-        for(int i = 3; ~i; i--) ins <<= 8, ins |= in[i];
-        printf("%X\n", ins);
-        d.decode(ins).print();
+        _ins = IF.fetch(reg, mem); // fetch instruction and add PC.
+        ins = ID.decode(_ins, reg2, reg); // read registers, decode instruction and apply compare and jump.
+        EX.execute(ins, reg2); // do ALU operates and calculate address, which is stored in imm.
+        MEM.work(ins, reg2, mem); //
+        WB.writeBack(reg, reg2); // write back registers.
     }
     return 0;
 }
