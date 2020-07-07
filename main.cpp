@@ -2,7 +2,11 @@
 #include <cstdio>
 #include <cstring>
 #include <algorithm>
+
 #include "decoder.hpp"
+#include "executor.hpp"
+#include "mem.hpp"
+
 using namespace std;
 
 int main() {

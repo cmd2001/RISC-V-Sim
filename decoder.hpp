@@ -3,11 +3,9 @@
 
 #include "include/shared.hpp"
 
-typedef unsigned int uint;
-
 namespace RISC_V {
 
-class Decoder {
+class Instruction_Decoder {
 private:
     uint cutBit(const uint &x, const uint &l, const uint &r) {
         return (x & ((1u << r) - (1u << l))) >> l;
@@ -155,6 +153,50 @@ public:
                 assert(0);
         }
         return ret;
+    }
+};
+
+class Decoder {
+private:
+    Instruction_Decoder id;
+public:
+    Instruction decode(const uint &_ins, Registers &r) { // decode instruction and solve jump.
+        Instruction ins = id.decode(_ins);
+        if(ins.tpe == JMP || ins.tpe == JMPC) {
+            r.pc -= 4; // FIXME: displace effect in IR
+            switch(ins.ins) {
+                case JAL:
+                    r.x[ins.rd] = r.pc + 4;
+                    r.pc += ins.imm;
+                    break;
+                case JALR:
+                    r.x[ins.rd] = r.pc + 4;
+                    r.pc += ins.imm + r.x[ins.rs1];
+                    break;
+                case BEQ:
+                    if(r.x[ins.rs1] == r.x[ins.rs2]) r.pc += ins.imm;
+                    break;
+                case BNE:
+                    if(r.x[ins.rs1] != r.x[ins.rs2]) r.pc += ins.imm;
+                    break;
+                case BLT:
+                    if(signed(r.x[ins.rs1]) != signed(r.x[ins.rs2])) r.pc += ins.imm;
+                    break;
+                case BLTU:
+                    if(r.x[ins.rs1] < r.x[ins.rs2]) r.pc += ins.imm;
+                    break;
+                case BGE:
+                    if(signed(r.x[ins.rs1]) >= signed(r.x[ins.rs2])) r.pc += ins.imm;
+                    break;
+                case BGEU:
+                    if(r.x[ins.rs1] > r.x[ins.rs2]) r.pc += ins.imm;
+                    break;
+                default:
+                    debug << "BAD INSTRUCTION IN DECODER.DECODE()" << endl;
+                    assert(0);
+            }
+        }
+        return ins;
     }
 };
 

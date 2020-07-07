@@ -9,6 +9,8 @@
 using namespace std;
 
 namespace RISC_V {
+typedef unsigned int uint;
+
 enum INSTRUCTION {
     LUI, AUIPC, JAL, JALR, BEQ, BNE, BLT, BGE, BLTU, BGEU, LB, LH, LW, LBU, LHU, SB, SH, SW, ADDI, SLTI, SLTIU, XORI, ORI, ANDI, SLLI, SRLI, SRAI, ADD, SUB, SLL, SLT, SLTU, XOR, SRL, SRA, OR, AND
 };
@@ -37,6 +39,24 @@ public:
         if(rs2 != -1) debug << "x" << rs2 << " ";
         if(rd != -1) debug << "x" << rd << " ";
         debug << imm << endl;
+    }
+};
+
+class Registers {
+public:
+    uint x[32], pc;
+    Registers() { memset(x, 0, sizeof x), pc = 0; }
+};
+
+constexpr size_t memory_Size = 0x20000;
+class Memory {
+    unsigned char* dat;
+    Memory() { dat = new unsigned char[memory_Size]; }
+    ~Memory() { delete[] dat; }
+    unsigned char & operator [] (const uint &p) { return dat[p]; }
+    void init(istream &i) {
+        i >> hex;
+        for(uint p = 0; !i.eof(); p++) i >> dat[p];
     }
 };
 
