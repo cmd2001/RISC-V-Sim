@@ -9,7 +9,7 @@ public:
     uint fetch(Registers &r, const Memory &mem) {
         assert(r.pc % 4 == 0);
         uint ret = 0;
-        for (uint i = 3; ~i; i--) ret <<= 1, ret |= mem[r.pc + i];
+        for (uint i = 3; ~i; i--) ret <<= 8, ret |= mem[r.pc + i];
         r.pc += 4;
         return ret;
     }

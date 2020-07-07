@@ -58,6 +58,9 @@ public:
                 case SLTU:
                     r.x[ins.rd] = r.x[ins.rs1] < r.x[ins.rs2];
                     break;
+                case XOR:
+                    r.x[ins.rd] = r.x[ins.rs1] ^ r.x[ins.rs2];
+                    break;
                 case SLL:
                     r.x[ins.rd] = r.x[ins.rs1] << cutBit(r.x[ins.rs2], 0, 5);
                     break;
@@ -66,6 +69,12 @@ public:
                     break;
                 case SRA:
                     r.x[ins.rd] = signed(r.x[ins.rs1]) >> cutBit(r.x[ins.rs2], 0, 5);
+                    break;
+                case OR:
+                    r.x[ins.rd] = r.x[ins.rs1] | r.x[ins.rs2];
+                    break;
+                case AND:
+                    r.x[ins.rd] = r.x[ins.rs1] & r.x[ins.rs2];
                     break;
                 default:
                     debug << "BAD INSTRUCTION IN EXECUTOR.EXECUTE()" << endl;

@@ -66,7 +66,6 @@ public:
     Instruction decode(const uint &ins) {
         Instruction ret;
         uint step, step2; // FIX variable redefinition in switch
-        printBin(ins);
         // printBin(cutBit(ins, 0, 7));
         switch(cutBit(ins, 0, 7)) {
             case 55: // 0110111, LUI
@@ -83,11 +82,11 @@ public:
                 ret.ins = JAL, ret.tpe = JMP;
                 ret.rd = cutBit(ins, 7, 12);
                 ret.imm = imm_J(ins);
-                printBin(ret.imm);
                 break;
             case 103: //1100111, JALR
                 ret.ins = JALR, ret.tpe = JMP;
                 ret.rd = cutBit(ins, 7, 12);
+                ret.rs1 = cutBit(ins, 15, 20);
                 ret.imm = imm_I(ins);
                 break;
             case 99: // 1100011
@@ -141,7 +140,7 @@ public:
                 ret.rs1 = cutBit(ins, 15, 20);
                 ret.rs2 = cutBit(ins, 20, 25);
                 step = cutBit(ins, 12, 15);
-                debug << "step = " << step << endl;
+                // debug << "step = " << step << endl;
                 step2 = getBit(ins, 30);
                 if(!step) ret.ins = INSTRUCTION(int(ADD) + step2);
                 else if(step <= 4) ret.ins = INSTRUCTION(int(SLL) + step - 1);
@@ -164,33 +163,33 @@ public:
         r = _r;
         Instruction ins = id.decode(_ins);
         if(ins.tpe == JMP || ins.tpe == JMPC) {
-            r.pc -= 4; // FIXME: displace effect in IR
+            const uint cur = r.pc - 4; // this instruction
             switch(ins.ins) {
                 case JAL:
-                    r.x[ins.rd] = r.pc + 4;
-                    r.pc += ins.imm;
+                    if(ins.rd) r.x[ins.rd] = cur + 4;
+                    r.pc = cur + ins.imm;
                     break;
                 case JALR:
-                    r.x[ins.rd] = r.pc + 4;
-                    r.pc += ins.imm + r.x[ins.rs1];
+                    if(ins.rd) r.x[ins.rd] = cur + 4;
+                    r.pc = ins.imm + r.x[ins.rs1]; // instead of +=
                     break;
                 case BEQ:
-                    if(r.x[ins.rs1] == r.x[ins.rs2]) r.pc += ins.imm;
+                    if(r.x[ins.rs1] == r.x[ins.rs2]) r.pc = cur + ins.imm;
                     break;
                 case BNE:
-                    if(r.x[ins.rs1] != r.x[ins.rs2]) r.pc += ins.imm;
+                    if(r.x[ins.rs1] != r.x[ins.rs2]) r.pc = cur + ins.imm;
                     break;
                 case BLT:
-                    if(signed(r.x[ins.rs1]) != signed(r.x[ins.rs2])) r.pc += ins.imm;
+                    if(signed(r.x[ins.rs1]) != signed(r.x[ins.rs2])) r.pc = cur + ins.imm;
                     break;
                 case BLTU:
-                    if(r.x[ins.rs1] < r.x[ins.rs2]) r.pc += ins.imm;
+                    if(r.x[ins.rs1] < r.x[ins.rs2]) r.pc = cur + ins.imm;
                     break;
                 case BGE:
-                    if(signed(r.x[ins.rs1]) >= signed(r.x[ins.rs2])) r.pc += ins.imm;
+                    if(signed(r.x[ins.rs1]) >= signed(r.x[ins.rs2])) r.pc = cur + ins.imm;
                     break;
                 case BGEU:
-                    if(r.x[ins.rs1] > r.x[ins.rs2]) r.pc += ins.imm;
+                    if(r.x[ins.rs1] > r.x[ins.rs2]) r.pc = cur + ins.imm;
                     break;
                 default:
                     debug << "BAD INSTRUCTION IN DECODER.DECODE()" << endl;
