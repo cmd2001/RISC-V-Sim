@@ -16,7 +16,7 @@ public:
                 case LUI:
                     r.x[ins.rd] = ins.imm;
                     break;
-                case AUIPC: // FIXME: pc - 4?
+                case AUIPC:
                     r.x[ins.rd] = ins.imm + r.pc;
                     break;
                 case ADDI:
@@ -43,7 +43,7 @@ public:
                 case SRLI:
                     r.x[ins.rd] = r.x[ins.rs1] >> ins.imm;
                     break;
-                case SRAI: // FIXME: signed?
+                case SRAI:
                     r.x[ins.rd] = signed(r.x[ins.rs1]) >> ins.imm;
                     break;
                 case ADD:
@@ -57,9 +57,6 @@ public:
                     break;
                 case SLTU:
                     r.x[ins.rd] = r.x[ins.rs1] < r.x[ins.rs2];
-                    break;
-                case XOR:
-                    r.x[ins.rd] = r.x[ins.rs1] ^ r.x[ins.rs2];
                     break;
                 case SLL:
                     r.x[ins.rd] = r.x[ins.rs1] << cutBit(r.x[ins.rs2], 0, 5);
@@ -76,11 +73,17 @@ public:
                 case AND:
                     r.x[ins.rd] = r.x[ins.rs1] & r.x[ins.rs2];
                     break;
+                case XOR:
+                    r.x[ins.rd] = r.x[ins.rs1] ^ r.x[ins.rs2];
+                    break;
                 default:
                     debug << "BAD INSTRUCTION IN EXECUTOR.EXECUTE()" << endl;
                     assert(0);
             }
         } else if(ins.tpe == LOAD || ins.tpe == STORE) {
+            if(ins.imm + r.x[ins.rs1] == 4488) {
+                ins.print();
+            }
             ins.imm += r.x[ins.rs1];
             assert(uint(LB) <= uint(ins.ins) && uint(ins.ins) <= uint(SW));
         }

@@ -148,7 +148,7 @@ public:
                 else ret.ins = INSTRUCTION(int(OR) + step - 6);
                 break;
             default:
-                debug << "ERROR:: UNKNOWN INSTRUCTION" << endl;
+                debug << "ERROR:: UNKNOWN INSTRUCTION " << ins << endl;
                 assert(0);
         }
         return ret;
@@ -171,7 +171,7 @@ public:
                     break;
                 case JALR:
                     if(ins.rd) r.x[ins.rd] = cur + 4;
-                    r.pc = ins.imm + r.x[ins.rs1]; // instead of +=
+                    r.pc = (ins.imm + r.x[ins.rs1]) & (unsigned(-2)); // instead of +=, ignore lowest bit.
                     break;
                 case BEQ:
                     if(r.x[ins.rs1] == r.x[ins.rs2]) r.pc = cur + ins.imm;
@@ -180,7 +180,7 @@ public:
                     if(r.x[ins.rs1] != r.x[ins.rs2]) r.pc = cur + ins.imm;
                     break;
                 case BLT:
-                    if(signed(r.x[ins.rs1]) != signed(r.x[ins.rs2])) r.pc = cur + ins.imm;
+                    if(signed(r.x[ins.rs1]) < signed(r.x[ins.rs2])) r.pc = cur + ins.imm; // not !=
                     break;
                 case BLTU:
                     if(r.x[ins.rs1] < r.x[ins.rs2]) r.pc = cur + ins.imm;
@@ -194,6 +194,10 @@ public:
                 default:
                     debug << "BAD INSTRUCTION IN DECODER.DECODE()" << endl;
                     assert(0);
+            }
+            if(r.pc & 3) {
+                debug << "MISALIGNED INSTRUCTUON DETECTED IN DECODER.DECODE()" << endl;
+                assert(0);
             }
         }
         return ins;

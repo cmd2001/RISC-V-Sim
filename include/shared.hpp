@@ -12,7 +12,7 @@ using namespace std;
 namespace RISC_V {
 typedef unsigned int uint;
 
-constexpr uint endIns = 0x00c68223;
+constexpr uint endIns = 0x0ff00513;
 
 enum INSTRUCTION {
     LUI, AUIPC, JAL, JALR, BEQ, BNE, BLT, BGE, BLTU, BGEU, LB, LH, LW, LBU, LHU, SB, SH, SW, ADDI, SLTI, SLTIU, XORI, ORI, ANDI, SLLI, SRLI, SRAI, ADD, SUB, SLL, SLT, SLTU, XOR, SRL, SRA, OR, AND
