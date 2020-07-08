@@ -24,7 +24,9 @@ class Memory_Access {
         return ret;
     }
 public:
-    void work(const Instruction &ins, Registers &r, Memory &m) {
+    MEM2WB work(const EX2MEM &arg, Memory &m) {
+        Instruction ins = arg.ins;
+        Registers r = arg.reg;
         if(ins.tpe == LOAD || ins.tpe == STORE) {
             switch(ins.ins) {
                 case LB:
@@ -56,6 +58,7 @@ public:
                     assert(0);
             }
         }
+        return (MEM2WB){r};
     }
 };
 

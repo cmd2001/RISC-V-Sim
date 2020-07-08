@@ -10,7 +10,9 @@ private:
         return (x & ((1u << r) - (1u << l))) >> l;
     }
 public:
-    void execute(Instruction &ins, Registers &r) {
+    EX2MEM execute(ID2EX arg) {
+        Instruction ins = arg.ins;
+        Registers r = arg.reg;
         if(ins.tpe == LIMM || ins.tpe == OPEI || ins.tpe == OPE) {
             switch(ins.ins) {
                 case LUI:
@@ -87,6 +89,7 @@ public:
             ins.imm += r.x[ins.rs1];
             assert(uint(LB) <= uint(ins.ins) && uint(ins.ins) <= uint(SW));
         }
+        return (EX2MEM){ins, r};
     }
 };
 }

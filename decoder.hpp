@@ -158,8 +158,10 @@ class Decoder {
 private:
     Instruction_Decoder id;
 public:
-    Instruction decode(const uint &_ins, Registers &r, const Registers &_r) { // decode instruction and solve jump.
-        r = _r;
+    ID2EX decode(const IF2ID &__ins, const Registers &_r) { // decode instruction and solve jump.
+        const uint _ins = __ins.ins;
+        Registers r = _r;
+
         Instruction ins = id.decode(_ins);
         if(ins.tpe == JMP || ins.tpe == JMPC) {
             const uint cur = r.pc - 4; // this instruction
@@ -199,7 +201,7 @@ public:
                 assert(0);
             }
         }
-        return ins;
+        return (ID2EX){ins, r};
     }
 };
 

@@ -14,20 +14,18 @@ Memory_Access MEM;
 WriteBacker WB;
 
 Memory mem;
-Registers reg, reg2;
+Registers reg;
 
 
 int main() {
     mem.init(cin);
-    uint _ins;
-    Instruction ins;
     while(1) {
-        _ins = IF.fetch(reg, mem); // fetch instruction and add PC.
-        if(_ins == endIns) break;
-        ins = ID.decode(_ins, reg2, reg); // read registers, decode instruction and apply compare and jump.
-        EX.execute(ins, reg2); // do ALU operates and calculate address, which is stored in imm.
-        MEM.work(ins, reg2, mem); //
-        WB.writeBack(reg, reg2); // write back registers.
+        IF2ID t1 = IF.fetch(reg.pc, mem); // fetch instruction and add PC.
+        if(t1.ins == endIns) break;
+        ID2EX t2 = ID.decode(t1, reg); // read registers, decode instruction and apply compare and jump.
+        EX2MEM t3 = EX.execute(t2); // do ALU operates and calculate address, which is stored in imm.
+        MEM2WB t4 = MEM.work(t3, mem); //
+        WB.writeBack(reg, t4); // write back registers.
     }
     assert(!reg.x[0]);
     printf("%d\n", reg.x[10] & 255);

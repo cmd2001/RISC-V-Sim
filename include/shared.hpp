@@ -81,6 +81,11 @@ public:
     }
 };
 
+struct IF2ID { uint ins; };
+struct ID2EX { Instruction ins; Registers reg; };
+struct EX2MEM { Instruction ins; Registers reg; };
+struct MEM2WB { Registers reg; };
+
 void printBin(uint x) {
     string ret = "";
     for(uint i = 0; i < 32; i++) ret = char('0' + (x & 1)) + ret, x >>= 1;
