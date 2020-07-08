@@ -24,6 +24,9 @@ class Memory_Access {
         return ret;
     }
 public:
+    bool check(const EX2MEM &arg) {
+        return arg.ins.tpe == LOAD || arg.ins.tpe == STORE;
+    }
     MEM2WB work(const EX2MEM &arg, Memory &m) {
         Instruction ins = arg.ins;
         Registers r = arg.reg;
