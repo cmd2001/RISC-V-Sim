@@ -66,7 +66,6 @@ public:
     Instruction decode(const uint &ins) {
         Instruction ret;
         uint step, step2; // FIX variable redefinition in switch
-        // printBin(cutBit(ins, 0, 7));
         switch(cutBit(ins, 0, 7)) {
             case 55: // 0110111, LUI
                 ret.ins = LUI, ret.tpe = LIMM;
@@ -189,7 +188,7 @@ public:
                     if(signed(r.x[ins.rs1]) >= signed(r.x[ins.rs2])) r.pc = cur + ins.imm;
                     break;
                 case BGEU:
-                    if(r.x[ins.rs1] > r.x[ins.rs2]) r.pc = cur + ins.imm;
+                    if(r.x[ins.rs1] >= r.x[ins.rs2]) r.pc = cur + ins.imm; // equal !!!!
                     break;
                 default:
                     debug << "BAD INSTRUCTION IN DECODER.DECODE()" << endl;

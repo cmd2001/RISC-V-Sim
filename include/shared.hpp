@@ -75,10 +75,7 @@ public:
         string x;
         while(!i.eof()) {
             i >> x;
-            if(x[0] == '@') {
-                p = hex2uint(x, 1);
-                debug << "p = " << p << endl;
-            }
+            if(x[0] == '@') p = hex2uint(x, 1);
             else dat[p++] = hex2uint(x);
         }
     }
@@ -99,6 +96,7 @@ void printHex(uint x) {
     while(ret.length() < 8) ret = '0' + ret;
     debug << "0x" + ret << endl;
 }
+
 }
 
 #endif //RISC_V_SHARED_HPP

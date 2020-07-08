@@ -12,10 +12,7 @@ class Memory_Access {
     }
     void write(Memory &m, const uint st, uint x, const uint len) {
         const uint mask = (1u << 8) - 1u;
-        for(uint i = 0; i < len; i++) {
-            // if(4204 <= st + i && st + i < 4204 + 4) debug << "WRONG WRITE" << endl, exit(0);
-            m[st + i] = x & mask, x >>= 8;
-        }
+        for(uint i = 0; i < len; i++) m[st + i] = x & mask, x >>= 8;
     }
     void writeSgn(uint &dst, const uint &startP) {
         const uint mask = (1u << 32) - (1u << startP);
