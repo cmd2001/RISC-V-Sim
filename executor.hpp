@@ -83,9 +83,6 @@ public:
                     assert(0);
             }
         } else if(ins.tpe == LOAD || ins.tpe == STORE) {
-            if(ins.imm + r.x[ins.rs1] == 4488) {
-                ins.print();
-            }
             ins.imm += r.x[ins.rs1];
             assert(uint(LB) <= uint(ins.ins) && uint(ins.ins) <= uint(SW));
         }
