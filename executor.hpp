@@ -14,17 +14,9 @@ public:
         Instruction ins = arg.ins;
         Registers_Diff r = arg.reg;
 
-        if(ins.tpe == JMP || ins.tpe == JMPC) {
+        if(ins.tpe == JMPC) {
             const uint cur = r.pc_val - 4; // this instruction
             switch(ins.ins) {
-                case JAL:
-                    if(ins.rd) r.rd_val = cur + 4, r.rd_changed = 1;
-                    r.pc_val = cur + ins.imm, r.pc_changed = 1;
-                    break;
-                case JALR:
-                    if(ins.rd) r.rd_val = cur + 4, r.rd_changed = 1;
-                    r.pc_val = (ins.imm + r.rs1_val) & (unsigned(-2)), r.pc_changed = 1; // instead of +=, ignore lowest bit.
-                    break;
                 case BEQ:
                     if(r.rs1_val == r.rs2_val) r.pc_val = cur + ins.imm, r.pc_changed = 1;
                     break;

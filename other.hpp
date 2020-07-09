@@ -21,5 +21,25 @@ public:
     }
 };
 
+class BranchPredictor {
+private:
+    uint val; // in range 0-3, 0,1 means jump, 2,3 means not jump
+    uint sum, fail_times;
+public:
+    BranchPredictor(): val(1), sum(0), fail_times(0) {};
+    bool getPre() { /* return val <= 1;*/ return 0; } // used to check.
+    void fail() {
+        static uint nxt[] = {1, 2, 1, 2};
+        ++fail_times, val = nxt[val];
+    }
+    void suc() {
+        static uint nxt[] = {0, 0, 2, 2};
+        val = nxt[val];
+    }
+    void print() {
+        debug << "Prediction Success Rate = " << (long double)(sum - fail_times) / sum << endl;
+    }
+};
+
 }
 #endif //RISC_V_OTHER_HPP

@@ -40,7 +40,7 @@ Clock stepClock(Clock &c, const uint clo) { // move 1 clock forward.
                 return ret;
             } else {
                 lastMem = uint(-1);
-                if(c.t3.ins.tpe == LOAD) { // stall 1 clock
+                if(c.t3.ins.tpe == LOAD) { // stall 1 clock by overriding data from EX, ID, IF.
                     ret.t4 = MEM.work(c.t3, mem);
                     ret.t2 = c.t2, ret.t1 = c.t1, ret.vaild[2] = 0;
                     ret.reg_New = ret.t4.reg; // forwarding: short path
@@ -48,18 +48,21 @@ Clock stepClock(Clock &c, const uint clo) { // move 1 clock forward.
                 } else ret.t4 = MEM.work(c.t3, mem); // STORE.
             }
         } else ret.t4 = MEM.work(c.t3, mem);
-        if(c.t3.ins.tpe == JMP || c.t3.ins.tpe == JMPC) branch = 1;
+        if(c.t3.ins.tpe == JMPC) branch = 1;
     }
     if(c.vaild[1]) {
         c.t2.reg.merge(c.reg_New); // forwarding: update
         ret.t3 = EX.execute(c.t2);
         ret.reg_New = ret.t3.reg;
-        if(c.t2.ins.tpe == JMP || c.t2.ins.tpe == JMPC) branch = 1;
+        if(c.t2.ins.tpe == JMPC) branch = 1;
     }
     if(c.vaild[0]) {
         ret.t2 = ID.decode(c.t1, reg);
         ret.t2.reg.merge(c.reg_New); // forwarding: update
-        if(ret.t2.ins.tpe == JMP || ret.t2.ins.tpe == JMPC) branch = 1;
+        if(ret.t2.ins.tpe == JMP) {
+            reg.pc = ID.jump(ret.t2), ret.t2.reg.pc_changed = 0; // override PC, which can be implemented by circuit.
+        }
+        if(ret.t2.ins.tpe == JMPC) branch = 1;
     }
     if(!branch && !flag) {
         ret.t1 = IF.fetch(reg.pc, mem);
