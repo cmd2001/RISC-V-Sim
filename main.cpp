@@ -59,7 +59,7 @@ Clock stepClock(Clock &c) { // move 1 clock forward.
 }
 
 int main() {
-    freopen("data.txt", "r", stdin);
+    // freopen("data.txt", "r", stdin);
     mem.init(cin);
     Clock cur;
     memset(cur.vaild, 0, sizeof cur.vaild);
