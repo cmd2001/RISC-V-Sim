@@ -161,46 +161,7 @@ public:
     ID2EX decode(const IF2ID &__ins, const Registers &_r) { // decode instruction and solve jump.
         const uint _ins = __ins.ins;
         Registers r = _r;
-
         Instruction ins = id.decode(_ins);
-        if(ins.tpe == JMP || ins.tpe == JMPC) {
-            const uint cur = r.pc - 4; // this instruction
-            switch(ins.ins) {
-                case JAL:
-                    if(ins.rd) r.x[ins.rd] = cur + 4;
-                    r.pc = cur + ins.imm;
-                    break;
-                case JALR:
-                    if(ins.rd) r.x[ins.rd] = cur + 4;
-                    r.pc = (ins.imm + r.x[ins.rs1]) & (unsigned(-2)); // instead of +=, ignore lowest bit.
-                    break;
-                case BEQ:
-                    if(r.x[ins.rs1] == r.x[ins.rs2]) r.pc = cur + ins.imm;
-                    break;
-                case BNE:
-                    if(r.x[ins.rs1] != r.x[ins.rs2]) r.pc = cur + ins.imm;
-                    break;
-                case BLT:
-                    if(signed(r.x[ins.rs1]) < signed(r.x[ins.rs2])) r.pc = cur + ins.imm; // not !=
-                    break;
-                case BLTU:
-                    if(r.x[ins.rs1] < r.x[ins.rs2]) r.pc = cur + ins.imm;
-                    break;
-                case BGE:
-                    if(signed(r.x[ins.rs1]) >= signed(r.x[ins.rs2])) r.pc = cur + ins.imm;
-                    break;
-                case BGEU:
-                    if(r.x[ins.rs1] >= r.x[ins.rs2]) r.pc = cur + ins.imm; // equal !!!!
-                    break;
-                default:
-                    debug << "BAD INSTRUCTION IN DECODER.DECODE()" << endl;
-                    assert(0);
-            }
-            if(r.pc & 3) {
-                debug << "MISALIGNED INSTRUCTUON DETECTED IN DECODER.DECODE()" << endl;
-                assert(0);
-            }
-        }
         return (ID2EX){ins, r};
     }
 };
