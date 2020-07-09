@@ -18,7 +18,7 @@ Registers reg;
 
 struct Clock {
     IF2ID t1; ID2EX t2; EX2MEM t3; MEM2WB t4;
-    Registers reg_New;
+    Registers_Diff reg_New;
     bool vaild[4];
 };
 

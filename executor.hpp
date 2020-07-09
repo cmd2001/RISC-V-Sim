@@ -12,117 +12,117 @@ private:
 public:
     EX2MEM execute(ID2EX arg) {
         Instruction ins = arg.ins;
-        Registers r = arg.reg;
+        Registers_Diff r = arg.reg;
 
         if(ins.tpe == JMP || ins.tpe == JMPC) {
-            const uint cur = r.pc - 4; // this instruction
+            const uint cur = r.pc_val - 4; // this instruction
             switch(ins.ins) {
                 case JAL:
-                    if(ins.rd) r.x[ins.rd] = cur + 4, r.changed[ins.rd] = 1;
-                    r.pc = cur + ins.imm, r.changed[32] = 1;
+                    if(ins.rd) r.rd_val = cur + 4, r.rd_changed = 1;
+                    r.pc_val = cur + ins.imm, r.pc_changed = 1;
                     break;
                 case JALR:
-                    if(ins.rd) r.x[ins.rd] = cur + 4, r.changed[ins.rd] = 1;
-                    r.pc = (ins.imm + r.x[ins.rs1]) & (unsigned(-2)), r.changed[32] = 1; // instead of +=, ignore lowest bit.
+                    if(ins.rd) r.rd_val = cur + 4, r.rd_changed = 1;
+                    r.pc_val = (ins.imm + r.rs1_val) & (unsigned(-2)), r.pc_changed = 1; // instead of +=, ignore lowest bit.
                     break;
                 case BEQ:
-                    if(r.x[ins.rs1] == r.x[ins.rs2]) r.pc = cur + ins.imm, r.changed[32] = 1;
+                    if(r.rs1_val == r.rs2_val) r.pc_val = cur + ins.imm, r.pc_changed = 1;
                     break;
                 case BNE:
-                    if(r.x[ins.rs1] != r.x[ins.rs2]) r.pc = cur + ins.imm, r.changed[32] = 1;
+                    if(r.rs1_val != r.rs2_val) r.pc_val = cur + ins.imm, r.pc_changed = 1;
                     break;
                 case BLT:
-                    if(signed(r.x[ins.rs1]) < signed(r.x[ins.rs2])) r.pc = cur + ins.imm, r.changed[32] = 1; // not !=
+                    if(signed(r.rs1_val) < signed(r.rs2_val)) r.pc_val = cur + ins.imm, r.pc_changed = 1; // not !=
                     break;
                 case BLTU:
-                    if(r.x[ins.rs1] < r.x[ins.rs2]) r.pc = cur + ins.imm, r.changed[32] = 1;
+                    if(r.rs1_val < r.rs2_val) r.pc_val = cur + ins.imm, r.pc_changed = 1;
                     break;
                 case BGE:
-                    if(signed(r.x[ins.rs1]) >= signed(r.x[ins.rs2])) r.pc = cur + ins.imm, r.changed[32] = 1;
+                    if(signed(r.rs1_val) >= signed(r.rs2_val)) r.pc_val = cur + ins.imm, r.pc_changed = 1;
                     break;
                 case BGEU:
-                    if(r.x[ins.rs1] >= r.x[ins.rs2]) r.pc = cur + ins.imm, r.changed[32] = 1; // equal !!!!
+                    if(r.rs1_val >= r.rs2_val) r.pc_val = cur + ins.imm, r.pc_changed = 1; // equal !!!!
                     break;
                 default:
                     debug << "BAD INSTRUCTION IN DECODER.DECODE()" << endl;
                     assert(0);
             }
-            if(r.pc & 3) {
+            if(r.pc_val & 3) {
                 debug << "MISALIGNED INSTRUCTUON DETECTED IN DECODER.DECODE()" << endl;
                 assert(0);
             }
         } else if(ins.tpe == LIMM || ins.tpe == OPEI || ins.tpe == OPE) {
-            r.changed[ins.rd] = 1;
+            r.rd_changed = 1;
             switch(ins.ins) {
                 case LUI:
-                    r.x[ins.rd] = ins.imm;
+                    r.rd_val = ins.imm;
                     break;
                 case AUIPC:
-                    r.x[ins.rd] = ins.imm + r.pc;
+                    r.rd_val = ins.imm + r.pc_val;
                     break;
                 case ADDI:
-                    r.x[ins.rd] = r.x[ins.rs1] + ins.imm;
+                    r.rd_val = r.rs1_val + ins.imm;
                     break;
                 case SLTI:
-                    r.x[ins.rd] = signed(r.x[ins.rs1]) < signed(ins.imm);
+                    r.rd_val = signed(r.rs1_val) < signed(ins.imm);
                     break;
                 case SLTIU:
-                    r.x[ins.rd] = (r.x[ins.rs1] < ins.imm);
+                    r.rd_val = (r.rs1_val < ins.imm);
                     break;
                 case ANDI:
-                    r.x[ins.rd] = r.x[ins.rs1] & ins.imm;
+                    r.rd_val = r.rs1_val & ins.imm;
                     break;
                 case ORI:
-                    r.x[ins.rd] = r.x[ins.rs1] | ins.imm;
+                    r.rd_val = r.rs1_val | ins.imm;
                     break;
                 case XORI:
-                    r.x[ins.rd] = r.x[ins.rs1] ^ ins.imm;
+                    r.rd_val = r.rs1_val ^ ins.imm;
                     break;
                 case SLLI:
-                    r.x[ins.rd] = r.x[ins.rs1] << ins.imm;
+                    r.rd_val = r.rs1_val << ins.imm;
                     break;
                 case SRLI:
-                    r.x[ins.rd] = r.x[ins.rs1] >> ins.imm;
+                    r.rd_val = r.rs1_val >> ins.imm;
                     break;
                 case SRAI:
-                    r.x[ins.rd] = signed(r.x[ins.rs1]) >> ins.imm;
+                    r.rd_val = signed(r.rs1_val) >> ins.imm;
                     break;
                 case ADD:
-                    r.x[ins.rd] = r.x[ins.rs1] + r.x[ins.rs2];
+                    r.rd_val = r.rs1_val + r.rs2_val;
                     break;
                 case SUB:
-                    r.x[ins.rd] = r.x[ins.rs1] - r.x[ins.rs2];
+                    r.rd_val = r.rs1_val - r.rs2_val;
                     break;
                 case SLT:
-                    r.x[ins.rd] = signed(r.x[ins.rs1]) < signed(r.x[ins.rs2]);
+                    r.rd_val = signed(r.rs1_val) < signed(r.rs2_val);
                     break;
                 case SLTU:
-                    r.x[ins.rd] = r.x[ins.rs1] < r.x[ins.rs2];
+                    r.rd_val = r.rs1_val < r.rs2_val;
                     break;
                 case SLL:
-                    r.x[ins.rd] = r.x[ins.rs1] << cutBit(r.x[ins.rs2], 0, 5);
+                    r.rd_val = r.rs1_val << cutBit(r.rs2_val, 0, 5);
                     break;
                 case SRL:
-                    r.x[ins.rd] = r.x[ins.rs1] >> cutBit(r.x[ins.rs2], 0, 5);
+                    r.rd_val = r.rs1_val >> cutBit(r.rs2_val, 0, 5);
                     break;
                 case SRA:
-                    r.x[ins.rd] = signed(r.x[ins.rs1]) >> cutBit(r.x[ins.rs2], 0, 5);
+                    r.rd_val = signed(r.rs1_val) >> cutBit(r.rs2_val, 0, 5);
                     break;
                 case OR:
-                    r.x[ins.rd] = r.x[ins.rs1] | r.x[ins.rs2];
+                    r.rd_val = r.rs1_val | r.rs2_val;
                     break;
                 case AND:
-                    r.x[ins.rd] = r.x[ins.rs1] & r.x[ins.rs2];
+                    r.rd_val = r.rs1_val & r.rs2_val;
                     break;
                 case XOR:
-                    r.x[ins.rd] = r.x[ins.rs1] ^ r.x[ins.rs2];
+                    r.rd_val = r.rs1_val ^ r.rs2_val;
                     break;
                 default:
                     debug << "BAD INSTRUCTION IN EXECUTOR.EXECUTE()" << endl;
                     assert(0);
             }
         } else if(ins.tpe == LOAD || ins.tpe == STORE) {
-            ins.imm += r.x[ins.rs1];
+            ins.imm += r.rs1_val;
             assert(uint(LB) <= uint(ins.ins) && uint(ins.ins) <= uint(SW));
         }
         return (EX2MEM){ins, r};

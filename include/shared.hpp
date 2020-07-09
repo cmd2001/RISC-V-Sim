@@ -12,6 +12,7 @@ using namespace std;
 
 namespace RISC_V {
 typedef unsigned int uint;
+typedef unsigned char uchar;
 
 constexpr uint endIns = 0x0ff00513;
 
@@ -46,14 +47,28 @@ public:
     }
 };
 
+class Registers_Diff {
+public:
+    uchar rs1_pos, rs2_pos, rd_pos;
+    uint rs1_val, rs2_val, rd_val, pc_val;
+    bool rd_changed, pc_changed;
+    void merge(const Registers_Diff &rhs) {
+        if(rhs.rd_changed) {
+            if(rs1_pos == rhs.rd_pos) rs1_val = rhs.rd_val;
+            if(rs2_pos == rhs.rd_pos) rs2_val = rhs.rd_val;
+            if(rd_pos == rhs.rd_pos) rd_val = rhs.rd_val;
+        }
+        if(rhs.pc_changed) pc_val = rhs.pc_val;
+    }
+};
+
 class Registers {
 public:
     uint x[32], pc;
-    bitset<33> changed;
-    Registers() { memset(x, 0, sizeof x), pc = 0, changed = 0; }
-    void merge(const Registers &rhs) {
-        for(uint i = 0; i < 32; i++) if(rhs.changed[i]) x[i] = rhs.x[i];
-        if(rhs.changed[32]) pc = rhs.pc;
+    Registers() { memset(x, 0, sizeof x), pc = 0; }
+    void merge(const Registers_Diff &rhs) {
+        if(rhs.rd_changed) x[rhs.rd_pos] = rhs.rd_val;
+        if(rhs.pc_changed) pc = rhs.pc_val;
     }
     void print() const {
         for(uint i = 0; i < 32; i++) debug << x[i] << " "; debug << pc << endl;
@@ -92,9 +107,9 @@ public:
 };
 
 struct IF2ID { uint ins; };
-struct ID2EX { Instruction ins; Registers reg; };
-struct EX2MEM { Instruction ins; Registers reg; };
-struct MEM2WB { Instruction ins; Registers reg; };
+struct ID2EX { Instruction ins; Registers_Diff reg; };
+struct EX2MEM { Instruction ins; Registers_Diff reg; };
+struct MEM2WB { Instruction ins; Registers_Diff reg; };
 
 void printBin(uint x) {
     string ret = "";

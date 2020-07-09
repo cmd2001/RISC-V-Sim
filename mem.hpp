@@ -29,33 +29,33 @@ public:
     }
     MEM2WB work(const EX2MEM &arg, Memory &m) {
         Instruction ins = arg.ins;
-        Registers r = arg.reg;
-        if(ins.tpe == LOAD) r.changed[ins.rd] = 1;
+        Registers_Diff r = arg.reg;
+        if(ins.tpe == LOAD) r.rd_changed = 1;
         if(ins.tpe == LOAD || ins.tpe == STORE) {
             switch(ins.ins) {
                 case LB:
-                    r.x[ins.rd] = extend(read(m, ins.imm, 1), 8);
+                    r.rd_val = extend(read(m, ins.imm, 1), 8);
                     break;
                 case LBU:
-                    r.x[ins.rd] = read(m, ins.imm, 1);
+                    r.rd_val = read(m, ins.imm, 1);
                     break;
                 case LH:
-                    r.x[ins.rd] = extend(read(m, ins.imm, 2), 16);
+                    r.rd_val = extend(read(m, ins.imm, 2), 16);
                     break;
                 case LHU:
-                    r.x[ins.rd] = read(m, ins.imm, 2);
+                    r.rd_val = read(m, ins.imm, 2);
                     break;
                 case LW:
-                    r.x[ins.rd] = read(m, ins.imm, 4);
+                    r.rd_val = read(m, ins.imm, 4);
                     break;
                 case SB:
-                    write(m, ins.imm, r.x[ins.rs2], 1);
+                    write(m, ins.imm, r.rs2_val, 1);
                     break;
                 case SH:
-                    write(m, ins.imm, r.x[ins.rs2], 2);
+                    write(m, ins.imm, r.rs2_val, 2);
                     break;
                 case SW:
-                    write(m, ins.imm, r.x[ins.rs2], 4);
+                    write(m, ins.imm, r.rs2_val, 4);
                     break;
                 default:
                     debug << "BAD INSTRUCTION IN MEMORY_ACCESS::WORK()" << endl;
