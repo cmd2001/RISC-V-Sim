@@ -30,6 +30,7 @@ public:
     MEM2WB work(const EX2MEM &arg, Memory &m) {
         Instruction ins = arg.ins;
         Registers r = arg.reg;
+        if(ins.tpe == LOAD) r.changed[ins.rd] = 1;
         if(ins.tpe == LOAD || ins.tpe == STORE) {
             switch(ins.ins) {
                 case LB:

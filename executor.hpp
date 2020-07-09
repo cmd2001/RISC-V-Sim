@@ -18,30 +18,30 @@ public:
             const uint cur = r.pc - 4; // this instruction
             switch(ins.ins) {
                 case JAL:
-                    if(ins.rd) r.x[ins.rd] = cur + 4;
-                    r.pc = cur + ins.imm;
+                    if(ins.rd) r.x[ins.rd] = cur + 4, r.changed[ins.rd] = 1;
+                    r.pc = cur + ins.imm, r.changed[32] = 1;
                     break;
                 case JALR:
-                    if(ins.rd) r.x[ins.rd] = cur + 4;
-                    r.pc = (ins.imm + r.x[ins.rs1]) & (unsigned(-2)); // instead of +=, ignore lowest bit.
+                    if(ins.rd) r.x[ins.rd] = cur + 4, r.changed[ins.rd] = 1;
+                    r.pc = (ins.imm + r.x[ins.rs1]) & (unsigned(-2)), r.changed[32] = 1; // instead of +=, ignore lowest bit.
                     break;
                 case BEQ:
-                    if(r.x[ins.rs1] == r.x[ins.rs2]) r.pc = cur + ins.imm;
+                    if(r.x[ins.rs1] == r.x[ins.rs2]) r.pc = cur + ins.imm, r.changed[32] = 1;
                     break;
                 case BNE:
-                    if(r.x[ins.rs1] != r.x[ins.rs2]) r.pc = cur + ins.imm;
+                    if(r.x[ins.rs1] != r.x[ins.rs2]) r.pc = cur + ins.imm, r.changed[32] = 1;
                     break;
                 case BLT:
-                    if(signed(r.x[ins.rs1]) < signed(r.x[ins.rs2])) r.pc = cur + ins.imm; // not !=
+                    if(signed(r.x[ins.rs1]) < signed(r.x[ins.rs2])) r.pc = cur + ins.imm, r.changed[32] = 1; // not !=
                     break;
                 case BLTU:
-                    if(r.x[ins.rs1] < r.x[ins.rs2]) r.pc = cur + ins.imm;
+                    if(r.x[ins.rs1] < r.x[ins.rs2]) r.pc = cur + ins.imm, r.changed[32] = 1;
                     break;
                 case BGE:
-                    if(signed(r.x[ins.rs1]) >= signed(r.x[ins.rs2])) r.pc = cur + ins.imm;
+                    if(signed(r.x[ins.rs1]) >= signed(r.x[ins.rs2])) r.pc = cur + ins.imm, r.changed[32] = 1;
                     break;
                 case BGEU:
-                    if(r.x[ins.rs1] >= r.x[ins.rs2]) r.pc = cur + ins.imm; // equal !!!!
+                    if(r.x[ins.rs1] >= r.x[ins.rs2]) r.pc = cur + ins.imm, r.changed[32] = 1; // equal !!!!
                     break;
                 default:
                     debug << "BAD INSTRUCTION IN DECODER.DECODE()" << endl;
@@ -52,6 +52,7 @@ public:
                 assert(0);
             }
         } else if(ins.tpe == LIMM || ins.tpe == OPEI || ins.tpe == OPE) {
+            r.changed[ins.rd] = 1;
             switch(ins.ins) {
                 case LUI:
                     r.x[ins.rd] = ins.imm;

@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <bitset>
 #include <cassert>
 #ifndef debug
 #define debug cerr
@@ -48,7 +49,12 @@ public:
 class Registers {
 public:
     uint x[32], pc;
+    bitset<33> changed;
     Registers() { memset(x, 0, sizeof x), pc = 0; }
+    void merge(const Registers &rhs) {
+        for(uint i = 0; i < 32; i++) if(rhs.changed[i]) x[i] = rhs.x[i];
+        if(rhs.changed[32]) pc = rhs.pc;
+    }
 };
 
 constexpr size_t memory_Size = 0x20000;

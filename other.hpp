@@ -17,7 +17,7 @@ public:
 class WriteBacker {
 public:
     void writeBack(Registers &dst, const MEM2WB &arg) {
-        dst = arg.reg;
+        dst.merge(arg.reg);
     }
 };
 
