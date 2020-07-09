@@ -24,20 +24,30 @@ struct Clock {
 
 uint flag = 0;
 
-Clock stepClock(Clock &c) { // move 1 clock forward.
+Clock stepClock(Clock &c, const uint clo) { // move 1 clock forward.
+    static uint lastMem = uint(-1);
     Clock ret;
     for(uint i = 1; i < 4; i++) ret.vaild[i] = c.vaild[i - 1];
     ret.vaild[0] = 1;
     bool branch = 0;
     if(c.vaild[3]) WB.writeBack(reg, c.t4);
     if(c.vaild[2]) {
-        if(c.t3.ins.tpe == LOAD) { // stall 1 clock
-            ret.t4 = MEM.work(c.t3, mem);
-            ret.t2 = c.t2, ret.t1 = c.t1, ret.vaild[2] = 0;
-            ret.reg_New = ret.t4.reg; // forwarding: short path
-            return ret;
-        }
-        ret.t4 = MEM.work(c.t3, mem);
+        if(MEM.check(c.t3)) {
+            if(lastMem == uint(-1)) lastMem = clo;
+            if(clo != lastMem + 3) { // not enough delay
+                ret.t3 = c.t3, ret.t2 = c.t2, ret.t1 = c.t1;
+                ret.vaild[3] = 0;
+                return ret;
+            } else {
+                lastMem = uint(-1);
+                if(c.t3.ins.tpe == LOAD) { // stall 1 clock
+                    ret.t4 = MEM.work(c.t3, mem);
+                    ret.t2 = c.t2, ret.t1 = c.t1, ret.vaild[2] = 0;
+                    ret.reg_New = ret.t4.reg; // forwarding: short path
+                    return ret;
+                } else ret.t4 = MEM.work(c.t3, mem); // STORE.
+            }
+        } else ret.t4 = MEM.work(c.t3, mem);
         if(c.t3.ins.tpe == JMP || c.t3.ins.tpe == JMPC) branch = 1;
     }
     if(c.vaild[1]) {
@@ -59,13 +69,11 @@ Clock stepClock(Clock &c) { // move 1 clock forward.
 }
 
 int main() {
-    // freopen("data.txt", "r", stdin);
     mem.init(cin);
     Clock cur;
     memset(cur.vaild, 0, sizeof cur.vaild);
     for(uint clo = 0; ; clo++) {
-        // debug << "clo = " << clo << endl;
-        auto tmp = stepClock(cur);
+        auto tmp = stepClock(cur, clo);
         cur = tmp;
         if(flag && ++flag > 10) break;
     }
@@ -73,4 +81,3 @@ int main() {
     printf("%d\n", reg.x[10] & 255);
     return 0;
 }
-
