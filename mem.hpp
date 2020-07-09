@@ -15,7 +15,7 @@ class Memory_Access {
         for(uint i = 0; i < len; i++) m[st + i] = x & mask, x >>= 8;
     }
     void writeSgn(uint &dst, const uint &startP) {
-        const uint mask = (1u << 32) - (1u << startP);
+        const uint mask = - (1u << startP);
         dst |= mask;
     }
     uint extend(const uint ori, const uint oriLen) {
@@ -62,7 +62,7 @@ public:
                     assert(0);
             }
         }
-        return (MEM2WB){r};
+        return (MEM2WB){ins, r};
     }
 };
 

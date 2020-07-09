@@ -18,7 +18,7 @@ private:
     }
     void writeSgn(uint &dst, const uint &startP, const uint &sgn) {
         if(sgn) {
-            const uint mask = (1u << 32) - (1u << startP);
+            const uint mask = - (1u << startP);
             dst |= mask;
         }
     }
