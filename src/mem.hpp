@@ -1,7 +1,7 @@
 #ifndef RISC_V_MEM_HPP
 #define RISC_V_MEM_HPP
 
-#include "include/shared.hpp"
+#include "../include/shared.hpp"
 namespace RISC_V {
 
 class Memory_Access {

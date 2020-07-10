@@ -1,7 +1,7 @@
 #ifndef RISC_V_DECODER_CPP_HPP
 #define RISC_V_DECODER_CPP_HPP
 
-#include "include/shared.hpp"
+#include "../include/shared.hpp"
 
 namespace RISC_V {
 
@@ -168,7 +168,7 @@ public:
         if(~ins.rd) ret.rd_val = r.x[ins.rd];
         return (ID2EX){ins, ret};
     }
-    uint jump(ID2EX &arg) {
+    uint jmp(ID2EX &arg) {
         const Instruction &ins = arg.ins;
         Registers_Diff &r = arg.reg;
         const uint cur = r.pc_val - 4;

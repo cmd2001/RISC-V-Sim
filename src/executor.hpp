@@ -1,7 +1,7 @@
 #ifndef RISC_V_EXECUTOR_HPP
 #define RISC_V_EXECUTOR_HPP
 
-#include "include/shared.hpp"
+#include "../include/shared.hpp"
 
 namespace RISC_V {
 class Executor {

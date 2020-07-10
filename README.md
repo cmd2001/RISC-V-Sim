@@ -6,4 +6,4 @@ RISC-V Simulator for PPCA 2020 of ACM Class, SJTU
 - [x] Abstract Level between Different Parts
 - [x] 3 Clocks Delay for Memory Access
 - [x] Pipeline
-- [ ] Branch Prediction
+- [x] Branch Prediction

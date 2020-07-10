@@ -6,7 +6,7 @@
 #include <bitset>
 #include <cassert>
 #ifndef debug
-#define debug cout
+#define debug cerr
 #endif
 using namespace std;
 
