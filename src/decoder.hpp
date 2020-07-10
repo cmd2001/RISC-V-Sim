@@ -162,7 +162,7 @@ public:
     ID2EX decode(const IF2ID &__ins, const Registers &r) { // decode instruction and solve jump.
         const uint _ins = __ins.ins;
         Instruction ins = id.decode(_ins);
-        Registers_Diff ret = (Registers_Diff){uchar(ins.rs1), uchar(ins.rs2), uchar(ins.rd), 0, 0, 0, r.pc, 0, 0};
+        Registers_Diff ret = Registers_Diff(ins.rs1, ins.rs2, ins.rd, r.pc);
         if(~ins.rs1) ret.rs1_val = r.x[ins.rs1];
         if(~ins.rs2) ret.rs2_val = r.x[ins.rs2];
         if(~ins.rd) ret.rd_val = r.x[ins.rd];

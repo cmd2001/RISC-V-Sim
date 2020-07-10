@@ -15,6 +15,20 @@ public:
         Registers_Diff r = arg.reg;
         if(ins.oriIns == endIns) return (EX2MEM){ins, r};
 
+        if(ins.tpe == JMP) {
+            const uint cur = r.pc_val - 4;
+            switch (ins.ins) {
+                case JAL:
+                    if(ins.rd) r.rd_val = cur + 4, r.rd_changed = 1;
+                    r.pc_val = cur + ins.imm, r.pc_changed = 1;
+                    break;
+                case JALR:
+                    if(ins.rd) r.rd_val = cur + 4, r.rd_changed = 1;
+                    r.pc_val = (ins.imm + r.rs1_val) & (unsigned(-2)), r.pc_changed = 1; // instead of +=, ignore lowest bit.
+                    break;
+            }
+        }
+
         if(ins.tpe == JMPC) {
             const uint cur = r.pc_val - 4; // this instruction
             switch(ins.ins) {

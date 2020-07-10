@@ -52,6 +52,8 @@ public:
     uchar rs1_pos, rs2_pos, rd_pos;
     uint rs1_val, rs2_val, rd_val, pc_val;
     bool rd_changed, pc_changed;
+    Registers_Diff(uchar _rs1_pos = uchar(-1), uchar _rs2_pos = uchar(-1), uchar _rd_pos = uchar(-1), uint _pc_val = uint(-1)):
+        rs1_pos(_rs1_pos), rs2_pos(_rs2_pos), rd_pos(_rd_pos), pc_val(_pc_val), rd_changed(0), pc_changed(0) {}
     void merge(const Registers_Diff &rhs) {
         if(rhs.rd_changed) {
             if(rs1_pos == rhs.rd_pos) rs1_val = rhs.rd_val;

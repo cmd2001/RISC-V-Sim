@@ -8,6 +8,7 @@
 RISC_V::CPU c;
 
 int main() {
+    freopen("data.txt", "r", stdin);
     c.init(cin);
     c.work();
     return 0;
