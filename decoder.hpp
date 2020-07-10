@@ -66,6 +66,7 @@ public:
     Instruction decode(const uint &ins) {
         Instruction ret;
         uint step, step2; // FIX variable redefinition in switch
+        ret.oriIns = ins;
         switch(cutBit(ins, 0, 7)) {
             case 55: // 0110111, LUI
                 ret.ins = LUI, ret.tpe = LIMM;

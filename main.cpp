@@ -30,7 +30,10 @@ Clock stepClock(Clock &c, const uint clo) { // move 1 clock forward.
     for(uint i = 1; i < 4; i++) ret.vaild[i] = c.vaild[i - 1];
     ret.vaild[0] = 1;
     bool branch = 0;
-    if(c.vaild[3]) WB.writeBack(reg, c.t4);
+    if(c.vaild[3]) {
+        WB.writeBack(reg, c.t4);
+        if(c.t4.ins.oriIns == endIns) flag = 1;
+    }
     if(c.vaild[2]) {
         if(MEM.check(c.t3)) {
             if(lastMem == uint(-1)) lastMem = clo;
@@ -64,10 +67,8 @@ Clock stepClock(Clock &c, const uint clo) { // move 1 clock forward.
         }
         if(ret.t2.ins.tpe == JMPC) branch = 1;
     }
-    if(!branch && !flag) {
-        ret.t1 = IF.fetch(reg.pc, mem);
-        if(ret.t1.ins == endIns) flag = 1, ret.t1.ins = 19;
-    } else ret.t1.ins = 19; // NOP
+    if(!branch && !flag) ret.t1 = IF.fetch(reg.pc, mem);
+    else ret.t1.ins = 19; // NOP
     return ret;
 }
 
@@ -78,7 +79,7 @@ int main() {
     for(uint clo = 0; ; clo++) {
         auto tmp = stepClock(cur, clo);
         cur = tmp;
-        if(flag && ++flag > 10) break;
+        if(flag) break;
     }
     assert(!reg.x[0]);
     printf("%d\n", reg.x[10] & 255);

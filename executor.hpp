@@ -13,6 +13,7 @@ public:
     EX2MEM execute(ID2EX arg) {
         Instruction ins = arg.ins;
         Registers_Diff r = arg.reg;
+        if(ins.oriIns == endIns) return (EX2MEM){ins, r};
 
         if(ins.tpe == JMPC) {
             const uint cur = r.pc_val - 4; // this instruction
