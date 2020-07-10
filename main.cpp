@@ -51,13 +51,16 @@ Clock stepClock(Clock &c, const uint clo) { // move 1 clock forward.
                 } else ret.t4 = MEM.work(c.t3, mem); // STORE.
             }
         } else ret.t4 = MEM.work(c.t3, mem);
-        if(c.t3.ins.tpe == JMPC) branch = 1;
     }
     if(c.vaild[1]) {
         c.t2.reg.merge(c.reg_New); // forwarding: update
         ret.t3 = EX.execute(c.t2);
-        ret.reg_New = ret.t3.reg;
-        if(c.t2.ins.tpe == JMPC) branch = 1;
+        if(ret.t3.ins.tpe == JMPC && ret.t3.reg.pc_changed) { // clear all level
+            reg.pc = ret.t3.reg.pc_val, ret.t3.reg.pc_changed = 0; // avoid changing pc again.
+            ret.vaild[0] = ret.vaild[1] = 0;
+            return ret;
+        }
+        ret.reg_New = ret.t3.reg; // after with ret.t3.reg.pc_changed = 0.
     }
     if(c.vaild[0]) {
         ret.t2 = ID.decode(c.t1, reg);
@@ -65,7 +68,6 @@ Clock stepClock(Clock &c, const uint clo) { // move 1 clock forward.
         if(ret.t2.ins.tpe == JMP) {
             reg.pc = ID.jump(ret.t2), ret.t2.reg.pc_changed = 0; // override PC, which can be implemented by circuit.
         }
-        if(ret.t2.ins.tpe == JMPC) branch = 1;
     }
     if(!branch && !flag) ret.t1 = IF.fetch(reg.pc, mem);
     else ret.t1.ins = 19; // NOP
@@ -73,6 +75,7 @@ Clock stepClock(Clock &c, const uint clo) { // move 1 clock forward.
 }
 
 int main() {
+    freopen("data.txt", "r", stdin);
     mem.init(cin);
     Clock cur;
     memset(cur.vaild, 0, sizeof cur.vaild);
