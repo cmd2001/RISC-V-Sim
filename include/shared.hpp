@@ -34,7 +34,7 @@ class Instruction {
 public:
     INSTRUCTION ins;
     INSTRUCTION_TYPE tpe;
-    uint rs1, rs2, rd, imm, oriIns;
+    uint rs1, rs2, rd, imm, oriIns, insPC;
     Instruction() {ins = INSTRUCTION(0), tpe = INSTRUCTION_TYPE(0), rs1 = rs2 = rd = -1, imm = 0;}
     void print() const {
         const string ls[] = {"LUI","AUIPC","JAL","JALR","BEQ","BNE","BLT","BGE","BLTU","BGEU","LB","LH","LW","LBU","LHU","SB","SH","SW","ADDI","SLTI","SLTIU","XORI","ORI","ANDI","SLLI","SRLI","SRAI","ADD","SUB","SLL","SLT","SLTU","XOR","SRL","SRA","OR","AND"};
@@ -107,7 +107,7 @@ public:
     }
 };
 
-struct IF2ID { uint ins; };
+struct IF2ID { uint ins, pc; };
 struct ID2EX { Instruction ins; Registers_Diff reg; };
 struct EX2MEM { Instruction ins; Registers_Diff reg; };
 struct MEM2WB { Instruction ins; Registers_Diff reg; };

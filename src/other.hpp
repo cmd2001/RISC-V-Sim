@@ -11,7 +11,7 @@ public:
         uint ret = 0;
         for (uint i = 3; ~i; i--) ret <<= 8, ret |= mem[pc + i];
         pc += 4;
-        return (IF2ID){ret};
+        return (IF2ID){ret, pc - 4};
     }
 };
 class WriteBacker {
@@ -23,19 +23,29 @@ public:
 
 class BranchPredictor {
 private:
-    uint val; // in range 0-3, 0,1 means jump, 2,3 means not jump
+    unsigned char* val;
     uint sum, fail_times;
+    const uint mask;
 public:
-    BranchPredictor(): val(2), sum(0), fail_times(0) {};
-    bool predict() { ++sum; return val <= 1; }
-    bool getPre() { return val <= 1; } // used to check.
-    void fail() {
-        static uint nxt[] = {1, 2, 1, 2};
-        ++fail_times, val = nxt[val];
+    BranchPredictor(): mask((1u << 7) - 1), sum(0), fail_times(0) {
+        val = new unsigned char[mask + 1];
+        memset(val, 2, mask + 1);
+    };
+    ~BranchPredictor() {delete val;}
+    bool predict(const uint pc) {
+        ++sum;
+        return val[pc & mask] <= 1;
     }
-    void suc() {
+    bool getPre(const uint pc) {
+        return val[pc & mask] <= 1;
+    }
+    void fail(const uint pc) {
+        static uint nxt[] = {1, 2, 1, 2};
+        ++fail_times, val[pc & mask] = nxt[val[pc & mask]];
+    }
+    void suc(const uint pc) {
         static uint nxt[] = {0, 0, 3, 3};
-        val = nxt[val];
+        val[pc & mask] = nxt[val[pc & mask]];
     }
     uint jmpc(const ID2EX &arg) {
         return arg.reg.pc_val - 4 + arg.ins.imm;
@@ -114,14 +124,14 @@ private:
                 ret.vaild[0] = ret.vaild[1] = 0;
                 return ret;
             } else if (ret.t3.ins.tpe == JMPC) { // clear all level
-                if (ret.t3.reg.pc_changed != BP.getPre()) {
+                if (ret.t3.reg.pc_changed != BP.getPre(ret.t3.ins.insPC)) {
                     ret.t3.reg.pc_changed = 0; // avoid changing pc again.
-                    if (BP.getPre()) reg.pc = ret.t3.reg.pc_val = ret.t3.reg.rd_val; // fail back
+                    if (BP.getPre(ret.t3.ins.insPC)) reg.pc = ret.t3.reg.pc_val = ret.t3.reg.rd_val; // fail back
                     else reg.pc = ret.t3.reg.pc_val; // do jump
-                    BP.fail();
+                    BP.fail(ret.t3.ins.insPC);
                     ret.vaild[0] = ret.vaild[1] = 0; // clear pipeline after jump failure.
                     return ret;
-                } else ret.t3.reg.pc_changed = 0, BP.suc(); // avoid changing pc again.
+                } else ret.t3.reg.pc_changed = 0, BP.suc(ret.t3.ins.insPC); // avoid changing pc again.
             }
             ret.reg_New = ret.t3.reg; // after with ret.t3.reg.pc_changed = 0.
         }
@@ -134,7 +144,7 @@ private:
             }
             if (ret.t2.ins.tpe == JMPC) {
                 ret.t2.reg.rd_val = reg.pc; // store pc in rd.
-                reg.pc = BP.predict() ? BP.jmpc(ret.t2) : reg.pc;
+                reg.pc = BP.predict(ret.t2.ins.insPC) ? BP.jmpc(ret.t2) : reg.pc;
             }
         }
         ret.t1 = IF.fetch(reg.pc, mem);
