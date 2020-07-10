@@ -79,8 +79,6 @@ private:
         if (c.vaild[3]) {
             WB.writeBack(reg, c.t4);
 
-            // if(c.t2.ins.rd != uint(-1)) --count[c.t2.ins.rd]; // usage counter.
-
             if (c.t4.ins.oriIns == endIns) {
                 flag = 1;
                 return ret;
@@ -99,6 +97,7 @@ private:
                         ret.t4 = MEM.work(c.t3, mem);
                         ret.t2 = c.t2, ret.t1 = c.t1, ret.vaild[2] = 0;
                         ret.reg_New = ret.t4.reg; // forwarding: short path
+                        --count[c.t3.ins.rd]; // usage counter.
                         return ret;
                     } else ret.t4 = MEM.work(c.t3, mem); // STORE.
                 }
@@ -108,7 +107,7 @@ private:
             c.t2.reg.merge(c.reg_New); // forwarding: update
             ret.t3 = EX.execute(c.t2);
 
-            // if(c.t2.ins.rd != uint(-1)) ++count[c.t2.ins.rd]; // usage counter.
+            if(c.t2.ins.tpe == LOAD && c.t2.ins.rd != uint(-1)) ++count[c.t2.ins.rd]; // usage counter.
 
             if (ret.t3.ins.tpe == JMP && ret.t3.ins.oriIns != uint(-1)) {
                 reg.pc = ret.t3.reg.pc_val, ret.t3.reg.pc_changed = 0;
@@ -129,10 +128,10 @@ private:
         if (c.vaild[0]) {
             ret.t2 = ID.decode(c.t1, reg);
             ret.t2.reg.merge(c.reg_New); // forwarding: update
-            /* if (ret.t2.ins.tpe == JMP && (ret.t2.ins.ins == JAL || !count[ret.t2.ins.rs1]) ) {
+            if (ret.t2.ins.tpe == JMP && (ret.t2.ins.ins == JAL || !count[ret.t2.ins.rs1]) ) {
                 reg.pc = ID.jmp(ret.t2), ret.t2.reg.pc_changed = 0; // override PC, which can be implemented by circuit.
                 ret.t2.ins.oriIns = uint(-1); // mark it as solved.
-            } */
+            }
             if (ret.t2.ins.tpe == JMPC) {
                 ret.t2.reg.rd_val = reg.pc; // store pc in rd.
                 reg.pc = BP.predict() ? BP.jmpc(ret.t2) : reg.pc;

@@ -15,7 +15,7 @@ public:
         Registers_Diff r = arg.reg;
         if(ins.oriIns == endIns) return (EX2MEM){ins, r};
 
-        if(ins.tpe == JMP) {
+        if(ins.tpe == JMP && arg.ins.oriIns != uint(-1)) {
             const uint cur = r.pc_val - 4;
             switch (ins.ins) {
                 case JAL:
