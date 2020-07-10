@@ -34,7 +34,7 @@ public:
         ++fail_times, val = nxt[val];
     }
     void suc() {
-        static uint nxt[] = {0, 0, 2, 2};
+        static uint nxt[] = {0, 0, 3, 3};
         val = nxt[val];
     }
     uint jmpc(const ID2EX &arg) {
